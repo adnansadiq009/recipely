@@ -1,10 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:recipely/data/utils/utils.dart';
+import 'package:provider/provider.dart';
+import 'package:recipely/controllers/firebase_controller.dart';
+import 'package:recipely/provider/auth_provider.dart';
 import 'package:recipely/views/constants/string_constant.dart';
 import 'package:recipely/views/constants/text_styles.dart';
 import 'package:recipely/views/screens/auth_screen/sign_up_screen.dart';
-import 'package:recipely/views/screens/search_screen/search_screen.dart';
 import 'package:recipely/views/widgets/app_button.dart';
 import 'package:recipely/views/widgets/custom_appbar.dart';
 import 'package:recipely/views/widgets/custom_textform_field.dart';
@@ -19,18 +19,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  bool _obscureText = true;
-
-  void _togglePasswordVisibility() {
-    setState(() {
-      _obscureText = !_obscureText;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,60 +65,35 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(
                   height: 10,
                 ),
-                CustomTextFormField(
-                  contentPaddingHorizontal: 5,
-                  controller: _passwordController,
-                  isPasswordField: true,
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  validationText: please_enter_mail,
-                  obscureText: _obscureText,
-                  hintText: enter_mail,
-                  onPressed: _togglePasswordVisibility,
-                ),
+                Consumer<AuthProvider>(builder: (context, value, child) {
+                  return CustomTextFormField(
+                    contentPaddingHorizontal: 5,
+                    controller: _passwordController,
+                    isPasswordField: true,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    validationText: please_enter_mail,
+                    obscureText: value.obscureText,
+                    hintText: enter_mail,
+                    onBackPressed: () {
+                      value.togglePasswordVisibility();
+                    },
+                  );
+                }),
                 const SizedBox(
                   height: 22,
                 ),
-                AppButton(
-                  isLoading: _isLoading,
-                  onTap: () {
-                    if (_formKey.currentState!.validate()) {
-                      setState(() {
-                        _isLoading = true;
-                      });
-                      _auth
-                          .signInWithEmailAndPassword(
-                        email: _emailController.text.toString(),
-                        password: _passwordController.text.toString(),
-                      )
-                          .then((value) {
-                        setState(() {
-                          _isLoading = false;
-                        });
-                        Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SearchScreen(),
-                            ),
-                            (route) => false);
-                      }).onError((error, stackTrace) {
-                        String errorMessage = error.toString();
-                        String extractedMessage = '';
-                        if (errorMessage.contains(']')) {
-                          int startIndex = errorMessage.indexOf(']') + 1;
-                          extractedMessage =
-                              errorMessage.substring(startIndex).trim();
-                        } else {
-                          extractedMessage = errorMessage;
-                        }
-                        Utils().snackMessage(extractedMessage);
-                        setState(() {
-                          _isLoading = false;
-                        });
-                      });
-                    }
-                  },
-                  btnText: login,
-                ),
+                Consumer<AuthProvider>(builder: (context, value, child) {
+                  return AppButton(
+                    isLoading: value.isLoading,
+                    onTap: () {
+                      if (_formKey.currentState!.validate()) {
+                        FirebaseController.logIn(
+                            context, _emailController, _passwordController);
+                      }
+                    },
+                    btnText: login,
+                  );
+                }),
                 const SizedBox(
                   height: 35,
                 ),

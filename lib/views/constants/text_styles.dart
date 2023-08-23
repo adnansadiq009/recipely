@@ -35,3 +35,23 @@ const TextStyle signup_btn_style = TextStyle(
   fontWeight: FontWeight.w600,
   color: primary_color,
 );
+const TextStyle bottom_sheet_heading_style = TextStyle(
+  fontSize: 18,
+  color: text_color,
+  fontWeight: FontWeight.w600,
+);
+const TextStyle filter_container_text_style = TextStyle(
+  fontSize: 16,
+  fontWeight: FontWeight.w600,
+  color: primary_color,
+);
+const TextStyle filter_container_text_style_selected = TextStyle(
+  fontSize: 16,
+  fontWeight: FontWeight.w600,
+  color: btn_text_color,
+);
+const TextStyle clear_filter_text_style = TextStyle(
+  fontSize: 18,
+  fontWeight: FontWeight.w800,
+  color: primary_color,
+);

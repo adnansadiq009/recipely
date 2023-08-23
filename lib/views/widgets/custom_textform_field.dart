@@ -16,7 +16,8 @@ class CustomTextFormField extends StatelessWidget {
   double? contentPaddingHorizontal;
   double? contentPaddingVertical;
   bool obscureText;
-  VoidCallback? onPressed;
+  void Function(String)? onChanged;
+  VoidCallback? onBackPressed;
   final String validationText;
   TextInputType? keyboardtype;
   final String hintText;
@@ -27,7 +28,8 @@ class CustomTextFormField extends StatelessWidget {
       required this.validationText,
       this.keyboardtype,
       this.validateEmail,
-      this.onPressed,
+      this.onChanged,
+      this.onBackPressed,
       this.contentPaddingHorizontal,
       this.contentPaddingVertical,
       required this.obscureText,
@@ -63,6 +65,7 @@ class CustomTextFormField extends StatelessWidget {
       obscureText: obscureText,
       keyboardType: keyboardtype,
       textAlignVertical: TextAlignVertical.center,
+      onChanged: onChanged,
       decoration: InputDecoration(
         prefixIcon: prefixIcon,
         suffixIcon: isPasswordField == true
@@ -74,7 +77,7 @@ class CustomTextFormField extends StatelessWidget {
                   icon: Icon(obscureText == true
                       ? Icons.visibility
                       : Icons.visibility_off),
-                  onPressed: onPressed,
+                  onPressed: onBackPressed,
                 ),
               )
             : null,

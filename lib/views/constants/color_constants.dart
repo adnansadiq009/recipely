@@ -7,3 +7,4 @@ const Color text_color = Color(0xff222222);
 const Color border_color = Color(0xff999999);
 const Color btn_text_color = Color(0xffffffff);
 const Color sub_text_color = Color(0xff999999);
+const Color filter_container_color = Color(0xffe6ebf3);

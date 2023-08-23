@@ -1,17 +1,31 @@
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:recipely/provider/search_provider.dart';
 import 'package:recipely/views/constants/color_constants.dart';
 import 'package:recipely/views/constants/size_constant.dart';
 import 'package:recipely/views/constants/string_constant.dart';
-import 'package:recipely/views/constants/text_styles.dart';
+import 'package:recipely/views/screens/search_screen/bottom_sheet.dart';
+import 'package:recipely/views/screens/search_screen/search_tile.dart';
 import 'package:recipely/views/widgets/custom_appbar.dart';
 import 'package:recipely/views/widgets/custom_textform_field.dart';
 
-class SearchScreen extends StatelessWidget {
+class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
 
   @override
+  State<SearchScreen> createState() => _SearchScreenState();
+}
+
+class _SearchScreenState extends State<SearchScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
+  final ref = FirebaseDatabase.instance.ref('Dishes');
+
+  @override
   Widget build(BuildContext context) {
-    TextEditingController searchController = TextEditingController();
+    final searchProvider = Provider.of<SearchProvider>(context);
     final double w = MediaQuery.of(context).size.width;
     final double h = MediaQuery.of(context).size.height;
     return SafeArea(
@@ -33,23 +47,30 @@ class SearchScreen extends StatelessWidget {
                     SizedBox(
                       width: w * 0.74,
                       child: CustomTextFormField(
-                          contentPaddingHorizontal: 5,
-                          controller: searchController,
-                          prefixIcon: const Icon(Icons.search),
-                          validationText: please_enter_mail,
-                          obscureText: false,
-                          hintText: search),
+                        contentPaddingHorizontal: 5,
+                        controller: _searchController,
+                        prefixIcon: const Icon(Icons.search),
+                        validationText: please_enter_mail,
+                        obscureText: false,
+                        hintText: search,
+                        onChanged: (String value) {
+                          searchProvider.setSearchText(value);
+                        },
+                      ),
                     ),
                     const Spacer(),
-                    Container(
-                      width: w * 0.13,
-                      height: 50,
-                      decoration: BoxDecoration(
-                          color: primary_color,
-                          borderRadius: BorderRadius.circular(small_radius)),
-                      child: Image.asset(
-                        'assets/images/filterIcon.png',
-                        scale: 1.5,
+                    InkWell(
+                      onTap: () => openBottomSheet(context),
+                      child: Container(
+                        width: w * 0.13,
+                        height: 50,
+                        decoration: BoxDecoration(
+                            color: primary_color,
+                            borderRadius: BorderRadius.circular(small_radius)),
+                        child: Image.asset(
+                          'assets/images/filterIcon.png',
+                          scale: 1.5,
+                        ),
                       ),
                     ),
                   ],
@@ -59,87 +80,45 @@ class SearchScreen extends StatelessWidget {
                 height: 15,
               ),
               Expanded(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: 100,
-                  itemBuilder: (BuildContext context, int index) {
-                    return Container(
-                      height: 118,
-                      margin: const EdgeInsets.only(
-                        bottom: list_item_space,
-                        left: list_item_margin,
-                        right: list_item_margin,
-                        top: list_item_margin,
-                      ),
-                      padding: const EdgeInsets.all(list_item_padding),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(small_radius),
-                          color: btn_text_color,
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0xffeeeeee),
-                              offset: Offset(0, 0),
-                              blurRadius: 5,
-                              spreadRadius: 2,
-                            ),
-                          ]),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.asset(
-                              'assets/images/image.png',
-                              fit: BoxFit.fill,
-                              width: 120,
-                              height: 100,
-                            ),
-                          ),
-                          SizedBox(
-                            width: w * 0.03,
-                          ),
-                          SizedBox(
-                            width: w * 0.41,
-                            child: const Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Sunny sideup with avocado',
-                                  maxLines: 2,
-                                  style: form_title_style,
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Text(
-                                  'Alica fala',
-                                  style: sub_text_style,
-                                )
-                              ],
-                            ),
-                          ),
-                          const Spacer(),
-                          DecoratedBox(
-                            decoration: BoxDecoration(
-                                color: primary_color,
-                                borderRadius:
-                                    BorderRadius.circular(small_radius)),
-                            child: const Padding(
-                              padding: EdgeInsets.all(arrow_padding),
-                              child: Icon(
-                                Icons.arrow_forward,
-                                color: btn_text_color,
-                                size: arrow_size,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                child:
+                    Consumer<SearchProvider>(builder: (context, value, child) {
+                  return FirebaseAnimatedList(
+                    query: ref,
+                    itemBuilder: ((context, snapshot, animation, index) {
+                      final name = snapshot.child('Name').value.toString();
+                      final category =
+                          snapshot.child('Category').value.toString();
+                      final recipeType =
+                          snapshot.child('Recipe').value.toString();
+                      if ((searchProvider.searchText.isEmpty) &&
+                          (value.selectedCategoryFilter == '1' ||
+                              value.selectedCategoryFilter == category) &&
+                          (value.selectedRecipeFilter == '1' ||
+                              value.selectedRecipeFilter == recipeType)) {
+                        return SearchTile(
+                          name: snapshot.child('Name').value.toString(),
+                          chef: snapshot.child('Chef').value.toString(),
+                        );
+                      } else if ((searchProvider.searchText.isEmpty) &&
+                          (value.selectedCategoryFilter == '1') &&
+                          (value.selectedCategoryFilter == '1')) {
+                        return SearchTile(
+                          name: snapshot.child('Name').value.toString(),
+                          chef: snapshot.child('Chef').value.toString(),
+                        );
+                      } else if ((searchProvider.searchText.isNotEmpty) &&
+                          (name.toLowerCase().contains(
+                              searchProvider.searchText.toLowerCase()))) {
+                        return SearchTile(
+                          name: snapshot.child('Name').value.toString(),
+                          chef: snapshot.child('Chef').value.toString(),
+                        );
+                      } else {
+                        return const SizedBox();
+                      }
+                    }),
+                  );
+                }),
               ),
             ],
           ),

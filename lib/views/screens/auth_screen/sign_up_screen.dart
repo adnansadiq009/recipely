@@ -1,6 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:recipely/data/utils/utils.dart';
+import 'package:provider/provider.dart';
+import 'package:recipely/controllers/firebase_controller.dart';
+import 'package:recipely/provider/auth_provider.dart';
 import 'package:recipely/views/constants/string_constant.dart';
 import 'package:recipely/views/constants/text_styles.dart';
 import 'package:recipely/views/widgets/app_button.dart';
@@ -17,18 +18,7 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  bool _obscureText = true;
-
-  void _togglePasswordVisibility() {
-    setState(() {
-      _obscureText = !_obscureText;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,60 +65,35 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(
                   height: 10,
                 ),
-                CustomTextFormField(
-                  contentPaddingHorizontal: 5,
-                  controller: _passwordController,
-                  isPasswordField: true,
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  validationText: please_enter_mail,
-                  obscureText: _obscureText,
-                  hintText: enter_mail,
-                  onPressed: _togglePasswordVisibility,
-                ),
+                Consumer<AuthProvider>(builder: (context, value, child) {
+                  return CustomTextFormField(
+                    contentPaddingHorizontal: 5,
+                    controller: _passwordController,
+                    isPasswordField: true,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    validationText: please_enter_mail,
+                    obscureText: value.obscureText,
+                    hintText: enter_mail,
+                    onBackPressed: () {
+                      value.togglePasswordVisibility();
+                    },
+                  );
+                }),
                 const SizedBox(
                   height: 22,
                 ),
-                AppButton(
-                  isLoading: _isLoading,
-                  onTap: () {
-                    if (_formKey.currentState!.validate()) {
-                      setState(() {
-                        _isLoading = true;
-                      });
-                      _auth
-                          .createUserWithEmailAndPassword(
-                        email: _emailController.text.toString(),
-                        password: _passwordController.text.toString(),
-                      )
-                          .then((value) {
-                        _emailController.clear();
-                        _passwordController.clear();
-                        Utils().snackMessage('Account is created');
-                        Future.delayed(const Duration(seconds: 1))
-                            .then((value) => Navigator.pop(context));
-
-                        setState(() {
-                          _isLoading = false;
-                        });
-                      }).onError((error, stackTrace) {
-                        String errorMessage = error.toString();
-                        String extractedMessage = '';
-                        if (errorMessage.contains(']')) {
-                          int startIndex = errorMessage.indexOf(']') + 1;
-                          extractedMessage =
-                              errorMessage.substring(startIndex).trim();
-                        } else {
-                          extractedMessage = errorMessage;
-                        }
-                        Utils().snackMessage(extractedMessage);
-                        setState(() {
-                          _isLoading = false;
-                        });
-                      });
-                    }
-                  },
-                  btnText: signup,
-                ),
+                Consumer<AuthProvider>(builder: (context, value, child) {
+                  return AppButton(
+                    isLoading: value.isLoading,
+                    onTap: () {
+                      if (_formKey.currentState!.validate()) {
+                        FirebaseController.signUp(
+                            context, _emailController, _passwordController);
+                      }
+                    },
+                    btnText: login,
+                  );
+                }),
               ],
             ),
           ),

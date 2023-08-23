@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipely/provider/auth_provider.dart';
 import 'package:recipely/provider/search_provider.dart';
-import 'package:recipely/views/screens/search_screen/search_screen.dart';
+import 'package:recipely/views/screens/splash_screen/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
-        home: const SearchScreen(),
+        home: const SplashSceen(),
       ),
     );
   }

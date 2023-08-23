@@ -40,7 +40,7 @@ class SearchTile extends StatelessWidget {
             child: Image.asset(
               'assets/images/image.png',
               fit: BoxFit.fill,
-              width: 120,
+              width: 100,
               height: 100,
             ),
           ),
@@ -48,7 +48,7 @@ class SearchTile extends StatelessWidget {
             width: w * 0.03,
           ),
           SizedBox(
-            width: w * 0.41,
+            width: w * 0.35,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
